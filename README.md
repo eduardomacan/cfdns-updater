@@ -16,7 +16,7 @@ A Bash script that monitors your public IP address and automatically updates a C
 Copy the example environment file to `/etc/cfdns-updater.env` and fill in your values:
 
 ```bash
-sudo cp cfdns-updater.env /etc/cfdns-updater.env
+sudo cp cfdns-updater.env-example /etc/cfdns-updater.env
 ```
 
 Edit `/etc/cfdns-updater.env` and set:
@@ -45,7 +45,6 @@ curl -s -H "Authorization: Bearer YOUR_API_TOKEN" \
 ```bash
 sudo mkdir -p /opt/cfdns-updater
 sudo cp cfdns-updater /opt/cfdns-updater/
-sudo cp cfdns-updater.env /etc/cfdns-updater.env
 sudo cp dns-updater.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable dns-updater
