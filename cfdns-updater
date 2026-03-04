@@ -1,0 +1,104 @@
+#!/usr/bin/bash
+
+CONFIG_FILE="/etc/cfdns-updater.env"
+
+set -a
+if [ -f $CONFIG_FILE ]; then
+    source $CONFIG_FILE
+fi
+set +a
+
+RUN_ONCE=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -n|--run-once)
+            RUN_ONCE=true
+            ;;
+        -h|--help)
+            echo "Usage: $0 [OPTIONS]"
+            echo "Options:"
+            echo "  -n, --run-once  Run once and exit (don't run as daemon)"
+            echo "  -h, --help      Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_DNS_RECORD_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$DNS_RECORD" ]; then
+    echo "Error: Missing required environment variables"
+    echo "Required: CLOUDFLARE_ZONE_ID, CLOUDFLARE_DNS_RECORD_ID, CLOUDFLARE_API_TOKEN, DNS_RECORD"
+    exit 1
+fi
+
+IP_FILE="/run/cfdns-lastip"
+CHECK_INTERVAL=300
+
+get_current_ip() {
+    curl -s https://checkip.amazonaws.com
+}
+
+update_dns() {
+    local ip="$1"
+    local now=$(date -Iseconds)
+    echo "Updating $DNS_RECORD with IP $ip"
+
+    QUERY="{
+          \"name\": \"$DNS_RECORD\",
+          \"ttl\": 3600,
+          \"type\": \"A\",
+          \"comment\": \"UPDATED VIA SCRIPT ON $now\",
+          \"content\": \"$ip\",
+          \"proxied\": false
+        }"
+
+    curl -s https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/dns_records/$CLOUDFLARE_DNS_RECORD_ID \
+        -X PUT \
+        -H 'Content-Type: application/json' \
+        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+        -d "$QUERY"
+}
+
+log() {
+    echo "[$(date -Iseconds)] $1"
+}
+
+log "Starting DNS updater service"
+
+cleanup() {
+    log "Received shutdown signal, exiting gracefully"
+    exit 0
+}
+
+trap cleanup SIGTERM SIGHUP
+
+while true; do
+    current_ip=$(get_current_ip)
+    
+    if [ -z "$current_ip" ]; then
+        log "Failed to get current IP, retrying in 60s"
+        sleep 60
+        continue
+    fi
+
+    if [ "$RUN_ONCE" = true ]; then
+        if [ -f "$IP_FILE" ]; then
+            last_ip=$(cat "$IP_FILE")
+            if [ "$current_ip" = "$last_ip" ]; then
+                log "IP unchanged ($current_ip), skipping update"
+                exit 0
+            fi
+        fi
+        log "IP changed, updating DNS with $current_ip"
+        update_dns "$current_ip"
+        echo "$current_ip" > "$IP_FILE"
+        exit 0
+    fi
+
+    sleep $CHECK_INTERVAL
+done
