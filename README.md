@@ -1,4 +1,4 @@
-# DNS Updater
+# Cloudflare DNS Updater
 
 A Bash script that monitors your public IP address and automatically updates a Cloudflare DNS A record when it changes. Designed to run as a systemd service.
 
