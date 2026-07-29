@@ -9,16 +9,21 @@ fi
 set +a
 
 RUN_ONCE=false
+FORCE_UPDATE=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -n|--run-once)
             RUN_ONCE=true
             ;;
+        -f|--force)
+            FORCE_UPDATE=true
+            ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
             echo "Options:"
             echo "  -n, --run-once  Run once and exit (don't run as daemon)"
+            echo "  -f, --force     Force update even if IP hasn't changed"
             echo "  -h, --help      Show this help message"
             exit 0
             ;;
@@ -92,6 +97,10 @@ while true; do
 
     if [ "$current_ip" != "$last_ip" ]; then
         log "IP changed: $last_ip -> $current_ip"
+        update_dns "$current_ip"
+        echo "$current_ip" > "$IP_FILE"
+    elif [ "$FORCE_UPDATE" = true ]; then
+        log "IP unchanged ($current_ip), forcing update"
         update_dns "$current_ip"
         echo "$current_ip" > "$IP_FILE"
     else
