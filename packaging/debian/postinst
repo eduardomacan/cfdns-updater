@@ -7,6 +7,8 @@ if [ "$1" = "configure" ]; then
     if [ ! -f "$CONFIG" ]; then
         install -m600 /usr/share/doc/cfdns-updater/cfdns-updater.env-example "$CONFIG"
     fi
+    # The config holds the API token; keep it root-only even if created by hand
+    chmod 600 "$CONFIG"
 
     systemctl daemon-reload || true
     systemctl enable dns-updater.service || true

@@ -20,7 +20,7 @@ sudo systemctl start dns-updater
 
 The package installs the script to `/opt/cfdns-updater/`, installs and enables the
 `dns-updater` service, and creates `/etc/cfdns-updater.env` from the example if it doesn't
-exist. Upgrades keep your config and restart the service.
+exist. The config is always set to mode 600 (root-only). Upgrades keep your config and restart the service.
 
 ### Releasing a new version
 
