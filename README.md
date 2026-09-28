@@ -82,14 +82,23 @@ Edit `/opt/cfdns-updater/cfdns-updater` to customize:
 |----------|---------|-------------|
 | `IP_FILE` | `/run/cfdns-lastip` | File storing last known IP |
 | `CHECK_INTERVAL` | `300` | Seconds between IP checks |
+| `RETRY_INTERVAL` | `60` | Seconds before retrying after a failed lookup or update |
+| `VERIFY_EVERY` | `12` | Compare against the live Cloudflare record every N checks (and on startup) |
 
 ## How It Works
 
-1. Fetches current public IP from https://checkip.amazonaws.com
-2. Compares with previously stored IP (in `/run/cfdns-lastip`)
+1. Fetches current public IP from https://checkip.amazonaws.com and validates it
+2. Compares with the last known IP (cached in `/run/cfdns-lastip`, and periodically read from the Cloudflare record itself)
 3. If different, updates Cloudflare DNS record via API
-4. Sleeps for 5 minutes, then repeats
-5. Handles graceful shutdown on systemd stop/restart
+4. Caches the new IP only after Cloudflare confirms the update; on any failure it retries after 60 seconds
+5. Sleeps for 5 minutes, then repeats (all network calls have timeouts, so the loop can't hang)
+6. Handles graceful shutdown on systemd stop/restart
+
+With `--run-once`, the exit code is non-zero if the IP lookup or the update fails.
+
+For reliable updates after a reboot, make sure a network wait-online service is enabled
+(`systemd-networkd-wait-online` or `NetworkManager-wait-online`), otherwise
+`network-online.target` may be reached before the network is actually usable.
 
 ## Uninstall
 
