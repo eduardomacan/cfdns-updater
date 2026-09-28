@@ -1,0 +1,11 @@
+Package: cfdns-updater
+Version: @VERSION@
+Section: net
+Priority: optional
+Architecture: all
+Depends: bash, curl, systemd
+Maintainer: Eduardo Macan <eduardomacan@gmail.com>
+Homepage: https://github.com/eduardomacan/cfdns-updater
+Description: Cloudflare dynamic DNS updater
+ Monitors the public IP address and updates a Cloudflare DNS A record
+ when it changes. Runs as the dns-updater systemd service.

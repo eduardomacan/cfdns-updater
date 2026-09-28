@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+CONFIG=/etc/cfdns-updater.env
+
+if [ "$1" = "configure" ]; then
+    if [ ! -f "$CONFIG" ]; then
+        install -m600 /usr/share/doc/cfdns-updater/cfdns-updater.env-example "$CONFIG"
+    fi
+
+    systemctl daemon-reload || true
+    systemctl enable dns-updater.service || true
+
+    if grep -q "your_zone_id_here" "$CONFIG"; then
+        echo "cfdns-updater: edit $CONFIG, then run: systemctl start dns-updater"
+    else
+        systemctl restart dns-updater.service || true
+    fi
+fi

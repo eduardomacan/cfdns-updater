@@ -9,7 +9,26 @@ A Bash script that monitors your public IP address and automatically updates a C
 - A Linux system with systemd
 - curl
 
-## Setup
+## Install from .deb (Debian/Ubuntu)
+
+```bash
+curl -LO https://github.com/eduardomacan/cfdns-updater/releases/latest/download/cfdns-updater_all.deb
+sudo apt install ./cfdns-updater_all.deb
+sudoedit /etc/cfdns-updater.env   # fill in your values (see below)
+sudo systemctl start dns-updater
+```
+
+The package installs the script to `/opt/cfdns-updater/`, installs and enables the
+`dns-updater` service, and creates `/etc/cfdns-updater.env` from the example if it doesn't
+exist. Upgrades keep your config and restart the service.
+
+### Releasing a new version
+
+Bump the version in `VERSION` and push to `main`. A GitHub Action builds the `.deb`
+and publishes it as the `v<version>` release. To build locally: `packaging/build-deb.sh`
+(output goes to `dist/`).
+
+## Manual Setup
 
 ### 1. Configure Environment Variables
 

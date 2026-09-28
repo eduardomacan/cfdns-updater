@@ -1,0 +1,38 @@
+name: Release .deb
+
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: echo "version=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Build .deb
+        run: packaging/build-deb.sh "${{ steps.version.outputs.version }}"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          DEB="dist/cfdns-updater_${VERSION}_all.deb"
+          # Unversioned copy gives a stable .../releases/latest/download/ URL
+          cp "$DEB" dist/cfdns-updater_all.deb
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            gh release upload "v$VERSION" "$DEB" dist/cfdns-updater_all.deb --clobber
+          else
+            gh release create "v$VERSION" "$DEB" dist/cfdns-updater_all.deb \
+              --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes --latest
+          fi
