@@ -2,6 +2,6 @@
 set -e
 
 if [ "$1" = "remove" ]; then
-    systemctl stop dns-updater.service || true
-    systemctl disable dns-updater.service || true
+    systemctl stop cfdns-updater.service || true
+    systemctl disable cfdns-updater.service || true
 fi

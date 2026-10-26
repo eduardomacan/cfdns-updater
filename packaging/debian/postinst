@@ -11,11 +11,11 @@ if [ "$1" = "configure" ]; then
     chmod 600 "$CONFIG"
 
     systemctl daemon-reload || true
-    systemctl enable dns-updater.service || true
+    systemctl enable cfdns-updater.service || true
 
     if grep -q "your_zone_id_here" "$CONFIG"; then
         echo "cfdns-updater: edit $CONFIG, then run: systemctl start dns-updater"
     else
-        systemctl restart dns-updater.service || true
+        systemctl restart cfdns-updater.service || true
     fi
 fi
