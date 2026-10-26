@@ -15,11 +15,11 @@ A Bash script that monitors your public IP address and automatically updates a C
 curl -LO https://github.com/eduardomacan/cfdns-updater/releases/latest/download/cfdns-updater_all.deb
 sudo apt install ./cfdns-updater_all.deb
 sudoedit /etc/cfdns-updater.env   # fill in your values (see below)
-sudo systemctl start dns-updater
+sudo systemctl start cfdns-updater
 ```
 
-The package installs the script to `/opt/cfdns-updater/`, installs and enables the
-`dns-updater` service, and creates `/etc/cfdns-updater.env` from the example if it doesn't
+The package installs the script to `/usr/bin/`, installs and enables the
+`cfdns-updater` service, and creates `/etc/cfdns-updater.env` from the example if it doesn't
 exist. The config is always set to mode 600 (root-only). Upgrades keep your config and restart the service.
 
 ### Releasing a new version
@@ -62,12 +62,11 @@ curl -s -H "Authorization: Bearer YOUR_API_TOKEN" \
 ### 3. Install
 
 ```bash
-sudo mkdir -p /opt/cfdns-updater
-sudo cp cfdns-updater /opt/cfdns-updater/
-sudo cp dns-updater.service /etc/systemd/system/
+sudo cp cfdns-updater /usr/bin/
+sudo cp cfdns-updater.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable dns-updater
-sudo systemctl start dns-updater
+sudo systemctl enable cfdns-updater
+sudo systemctl start cfdns-updater
 ```
 
 ## Usage
@@ -84,18 +83,18 @@ cfdns-updater -n
 cfdns-updater --help
 
 # View logs
-journalctl -u dns-updater -f
+journalctl -u cfdns-updater -f
 
 # Restart service (e.g., after config changes)
-sudo systemctl restart dns-updater
+sudo systemctl restart cfdns-updater
 
 # Stop service
-sudo systemctl stop dns-updater
+sudo systemctl stop cfdns-updater
 ```
 
 ## Configuration
 
-Edit `/opt/cfdns-updater/cfdns-updater` to customize:
+Edit `/usr/bin/cfdns-updater` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -122,10 +121,10 @@ For reliable updates after a reboot, make sure a network wait-online service is 
 ## Uninstall
 
 ```bash
-sudo systemctl stop dns-updater
-sudo systemctl disable dns-updater
-sudo rm /etc/systemd/system/dns-updater.service
-sudo rm -rf /opt/cfdns-updater
+sudo systemctl stop cfdns-updater
+sudo systemctl disable cfdns-updater
+sudo rm /etc/systemd/system/cfdns-updater.service
+sudo rm /usr/bin/cfdns-updater
 sudo rm /etc/cfdns-updater.env
 sudo systemctl daemon-reload
 ```
